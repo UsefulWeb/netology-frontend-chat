@@ -1,5 +1,5 @@
 !(() => {
-  let lastMessageId;
+  let lastMessageId = -1;
   document.addEventListener('submit', e => {
     const chatForm = e.target.closest('.chat-form');
     if (!chatForm) {
@@ -130,8 +130,11 @@
     if (messages.length === 0) {
       return;
     }
-
-    lastMessageId = messages[messages.length - 1].id;
+    const lastMessage = messages[messages.length - 1];
+    if (!lastMessage) {
+      return;
+    }
+    lastMessageId = lastMessage.id;
   };
 
   const onload = callback => {
