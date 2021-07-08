@@ -1,15 +1,21 @@
 !(() => {
+  // id последнего сообщения
   let lastMessageId = -1;
+  // отправка сообщения
   document.addEventListener('submit', e => {
     const chatForm = e.target.closest('.chat-form');
     if (!chatForm) {
       return;
     }
+
+    // форма заполнена верно?
     if (!chatForm.checkValidity()) {
       return;
     }
+    // отмена действия браузера по умолчанию (обновление страницы)
     e.preventDefault();
 
+    // сначала отображаем сообщение
     const chat = chatForm.closest('.chat');
     const messageInput = chatForm.elements.message;
     const message = messageInput.value;
@@ -17,20 +23,22 @@
 
     renderMessage({
       username: getUserName(),
-      isMyMessage: true,
       message,
       container: messageContainer
     });
 
+    // сохраняем сообщение на сервере
     sendMessage({
       username: getUserName(),
       message,
     });
 
+    // очищаем форму и даём фокус ввода полю
     chatForm.reset();
     messageInput.focus();
   });
 
+  // получить список сообщений с сервера
   const listMessages = async () => {
     const url = '/?action=list-messages';
     const response = await fetch(url);
@@ -38,19 +46,23 @@
     return data;
   };
 
+  // получить список обновлений с сервера
   const getUpdates = async () => {
-    const url = `/?action=new-messages&last_update=${lastMessageId}`;
+    const url = '/?action=new-messages&last_update=' + lastMessageId;
     const response = await fetch(url);
     const { data } = await response.json();
     return data;
   };
 
+  // отправить сообщение
   const sendMessage = async options => {
     const { message, username } = options;
-    const url = '/?action=create-message';
+
     const formData = new FormData;
     formData.append('message', message);
     formData.append('username', username);
+
+    const url = '/?action=create-message';
     const response = await fetch(url, {
       method: 'POST',
       body: formData
@@ -60,29 +72,34 @@
     lastMessageId = id;
   };
 
+  // формирует случайную строку
   const getRandomString = () => Math.random().toString(36).substr(2);
 
+  // получает имя пользователя в системе
   const getUserName = () => {
-    const { username } = localStorage;
-    if (!username) {
-      const username = 'user-' + getRandomString();
-      localStorage.username = username;
-
+    let { username } = localStorage;
+    if (username) {
       return username;
     }
+    username = 'user-' + getRandomString();
+    localStorage.username = username;
+
     return username;
   };
 
-  const createElement = (element, options = {}) => Object.assign(
-    document.createElement(element),
+  // создаёт DOM-элемент
+  const createElement = (tagName, options = {}) => Object.assign(
+    document.createElement(tagName),
     options
   );
 
+  // отрисовывает сообщение
   const renderMessage = options => {
     const {
       message,
       container,
     } = options;
+
     const isMyMessage = options.username === getUserName();
     const username = isMyMessage ? 'Вы' : options.username;
 
@@ -105,26 +122,14 @@
     container.appendChild(node);
   };
 
-  const initUpdates = () => {
-    const container = document.querySelector('.chat__messages');
-
-    setInterval(async () => {
-      const messages = await getUpdates();
-
-      renderUpdates({
-        messages,
-        container
-      });
-    }, 5000);
-  };
-
-  const renderUpdates = options => {
+  // отрисовка обновлений
+  const renderMessages = options => {
     const { messages, container } = options;
     messages.forEach(item => {
       renderMessage({
         ...item,
         container
-      })
+      });
     });
 
     if (messages.length === 0) {
@@ -137,6 +142,19 @@
     lastMessageId = lastMessage.id;
   };
 
+  const initUpdates = () => {
+    const container = document.querySelector('.chat__messages');
+
+    setInterval( async () => {
+      const messages = await getUpdates();
+
+      renderMessages({
+        messages,
+        container
+      });
+    }, 5000);
+  };
+
   const onload = callback => {
     if (document.readyState !== 'loading') {
       return callback();
@@ -144,6 +162,7 @@
     document.addEventListener('DOMContentLoaded', callback);
   };
 
+  // запуск приложения по загрузке DOM
   onload(async () => {
     const container = document.querySelector('.chat__messages');
     if (!container) {
@@ -151,11 +170,12 @@
     }
     const messages = await listMessages();
 
-    renderUpdates({
+    renderMessages({
       messages,
       container
     });
 
     initUpdates();
   });
+
 })();

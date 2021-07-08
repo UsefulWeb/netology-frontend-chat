@@ -20,6 +20,22 @@
             <div class="container full-height">
                 <div class="chat__box full-height">
                     <div class="chat__messages full-height">
+                        <div class="chat-message chat-message_my">
+                            <div class="chat-message__user">
+                                Вы
+                            </div>
+                            <div class="chat-message__text">
+                                Добрый день!
+                            </div>
+                        </div>
+                        <div class="chat-message chat-message_user">
+                            <div class="chat-message__user">
+                                user-4yafj3okvbo
+                            </div>
+                            <div class="chat-message__text">
+                                И вам!
+                            </div>
+                        </div>
                     </div>
                     <form action="/index.php?type=send" class="chat-form">
                         <input type="text" name="message" placeholder="Введите текст и нажмите «Отправить»" class="chat-form__input chat-form__input_message" required>
